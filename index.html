@@ -4,11 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <title>Tic Tac Toe</title>
 </head>
 <body>
     
 
+        <h1 class="title">Play Against the Computer</h1>
+        <div class="board">
+            <div class="board-piece-0 top-left" data-slot="top-left">
+            </div> <!-- 0 -->
+            <div class="board-piece-1 top-mid" data-slot="top-mid">
+            </div> <!-- 1 -->
+            <div class="board-piece-2 top-right" data-slot="top-right">
+            </div> <!-- 2 -->
+            <div class="board-piece-3 mid-left" data-slot="mid-left">
+            </div> <!-- 3 -->
+            <div class="board-piece-4 mid-mid" data-slot="mid-mid">
+            </div> <!-- 4 -->
+            <div class="board-piece-5 mid-right" data-slot="mid-right">
+            </div> <!-- 5 -->
+            <div class="board-piece-6 bottom-left" data-slot="bottom-left">
+            </div> <!-- 6 -->
+            <div class="board-piece-7 bottom-mid" data-slot="bottom-mid">
+            </div> <!-- 7 -->
+            <div class="board-piece-8 bottom-right" data-slot="bottom-right">
+            </div> <!-- 8 -->
+            <div class="line"></div>
+        </div> 
+
+
+        <div class="modal hidden">
+            <div class="modal-content">
+               <div class="winner-msg">
+                   Congrats you have won
+               </div> 
+               <div>
+                   <button class="btn">Play Again</button>
+               </div>
+            </div>
+        </div>
+
+   
+
+    
 
 
 
