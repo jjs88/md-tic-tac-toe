@@ -2,7 +2,7 @@ var Game = (function(){
 
 
     //private variables for the game
-    var board, winner, successSpot, boardSpot, element, choiceObj, choiceSlot, move, element,line, img, same, btn,
+    var board, winner, successSpot, boardSpot, element, choiceObj, choiceSlot, element, line, img, same, btn,
     modal, modalContent, winningCombos, winnerMsg, stallMateWatch;
 
     
