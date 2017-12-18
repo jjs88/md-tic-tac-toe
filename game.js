@@ -6,35 +6,35 @@ var Game = (function(){
 
 
     var board, winner, successSpot, boardSpot, element, choiceObj, choiceSlot, move, element,line, img, same, btn,
-    modal, modalContent, winningCombos, winnerMsg;
+    modal, modalContent, winningCombos, winnerMsg, stallMateWatch;
 
     
     function createWinningCombosArray() {
         
-                let combos = [
-                    
-                    //contains the winning combos plus the js hook for the line through the set
-                    //each object value will get replaced with X or O as game progresses, until there is a winner
+        let combos = [
             
-                    // across
-                    [{"top-left": 0},{"top-mid": 1},{"top-right": 2},{"line": "line-top-across" }], 
-                    [{"mid-left": 3},{"mid-mid": 4},{"mid-right": 5},{"line": "line-mid-across"}], 
-                    [{"bottom-left": 6},{"bottom-mid": 7},{"bottom-right": 8}, {"line": "line-bottom-across"}], 
-            
-                    //down
-                    [{"top-left": 0},{"mid-left": 3},{"bottom-left": 6},{"line": "line-left-down"}], 
-                    [{"top-mid": 1},{"mid-mid": 4},{"bottom-mid": 7},{"line": "line-mid-down"}], 
-                    [{"top-right":2},{"mid-right":5},{"bottom-right":8},{"line": "line-right-down"}], 
-            
-                    // diagonal
-                    [{"top-left":0},{"mid-mid":4},{"bottom-right":8}, {"line": "line-right-diag"}], 
-                    [{"top-right":2}, {"mid-mid":4}, {"bottom-left":6},{"line": "line-left-diag"}] 
-                ];
-                
-                let arr = combos;
-                
-                return arr;
-            }
+            //contains the winning combos plus the js hook for the line through the set
+            //each object value will get replaced with X or O as game progresses, until there is a winner
+    
+            // across
+            [{"top-left": 0},{"top-mid": 1},{"top-right": 2},{"line": "line-top-across" }], 
+            [{"mid-left": 3},{"mid-mid": 4},{"mid-right": 5},{"line": "line-mid-across"}], 
+            [{"bottom-left": 6},{"bottom-mid": 7},{"bottom-right": 8}, {"line": "line-bottom-across"}], 
+    
+            //down
+            [{"top-left": 0},{"mid-left": 3},{"bottom-left": 6},{"line": "line-left-down"}], 
+            [{"top-mid": 1},{"mid-mid": 4},{"bottom-mid": 7},{"line": "line-mid-down"}], 
+            [{"top-right":2},{"mid-right":5},{"bottom-right":8},{"line": "line-right-down"}], 
+    
+            // diagonal
+            [{"top-left":0},{"mid-mid":4},{"bottom-right":8}, {"line": "line-right-diag"}], 
+            [{"top-right":2}, {"mid-mid":4}, {"bottom-left":6},{"line": "line-left-diag"}] 
+        ];
+        
+        let arr = combos;
+        
+        return arr;
+    }
 
 
 
@@ -45,8 +45,7 @@ var Game = (function(){
         boardSpot = e.target.getAttribute('data-slot');
         element = e.target;
 
-        userChoice(boardSpot)
-
+        userChoice(boardSpot);
     }
 
 
@@ -61,7 +60,7 @@ var Game = (function(){
                 for(y = 0; y < winningCombos[x].length-1; y++) { //cycle each object, skip last one
 
                     if(winningCombos[x][y][boardSpot] !== undefined //must be a valid slot
-                        && (winningCombos[x][y][boardSpot] !== boardSpot //can't equal an X already
+                        && (winningCombos[x][y][boardSpot] !== 'x' //can't equal an X already
                         && winningCombos[x][y][boardSpot] !== 'o')) { //can't equal an O already
 
                         winningCombos[x][y][boardSpot] = 'x'; //override value
@@ -74,20 +73,22 @@ var Game = (function(){
             if(successSpot) { //if the user choice was a success, add the image to the board for that slot
 
                 addBoardIMG(boardSpot,'X');
+                addToStallMateWatch(boardSpot);
+                checkForStallMate();
 
                 if(!isWinner('josh')) { //check if user is the winner, else computers turn
 
                     computerMove();
 
                 } else { // user is the winner
-                    // console.log('josh is winner');
 
                     //END GAME HERE
-                    //create a display a modal
-                    toggleModal('josh');
+                    // console.log('josh wins');
+                    gameOver('josh');
+                    return;
                 }
             } else { //wasn't a successful spot, player goes again
-                console.log('try again');
+                // console.log('try again');
             } 
         }
     }
@@ -166,15 +167,19 @@ var Game = (function(){
             //get prop to tie to element class, only one in the object
             for(prop in boardSpot) {
                 addBoardIMG(prop, 'O');
+                addToStallMateWatch(prop);
             }
 
 
             if(isWinner('computer')) {
-                console.log('computer wins!');
-                
+                // console.log('computer wins!');
                 //END GAME HERE
-                toggleModal('computer');
+                // console.log(winningCombos);
+                gameOver('computer');
+                return;
             }
+
+            checkForStallMate();
         }
     }
 
@@ -211,40 +216,57 @@ var Game = (function(){
     }
 
     
+    function addToStallMateWatch(spot) {
+        //keep track of the successful game spots 
+        stallMateWatch.push(spot);
+    }
 
+    function checkForStallMate() {
 
-    // function exitModal(e) {
+        // console.log('stall', stallMateWatch);
+        let cnt = 0;
+        if(stallMateWatch.length === 8) {
+            //do logic here to determine whether user should go on last try
+            //if any row has a count of 1 that means it can be a winner. so let the user go again to win
+            for(var x = 0; x < winningCombos.length; x++) { //cycle the inner arrays
+                
+                cnt = 0;
 
-    //     e.preventDefault();
-
-    //     console.log(e.target);
-    //     console.log(modal);
-    //     modal.classList.add('toggle-hidden');
-    //     modalContent.classList.add('rotate');
-       
-    // }
-
-    function toggleModal(user) {
+                for(var y = 0; y < winningCombos[x].length-1; y++) { //cycle the objects, skip last
+                    
+                    for(var prop in winningCombos[x][y]) { //cycle the props
         
-        if(user === 'computer') {
-            winnerMsg.innerHTML = `The computer has won! :(`
-        }
+                        if(winningCombos[x][y][prop] === 'x') {
+                            cnt++;
+                        } else if (winningCombos[x][y][prop] === 'o') {
+                            cnt = cnt-1;
+                        } else {
+                            cnt;
+                        }
+                    }
 
-        if(user === 'josh') {
-            winnerMsg.innerHTML = 'Congrats! You have won';
-        }
+                    // console.log(prop, cnt);
 
-        if(!modal.classList.contains('hidden')) {
-            modalContent.classList.remove('rotate');
-            modal.classList.add('hidden');
+                }
+
             
-        } else {
-            modalContent.classList.add('rotate');
-            modal.classList.remove('hidden');
+                if (cnt === 2) {
+
+                    // console.log('user goes');
+                    break;
+                }
+            }
+
+            if(cnt !== 2) {
+                // console.log('end game', 'stall game');
+                gameOver('stall');
+            }
+            
         }
     }
 
-    function resetGame(e) {
+    
+    function restartGame(e) {
 
         e.preventDefault();
 
@@ -257,14 +279,48 @@ var Game = (function(){
         boardSlots.forEach(function(element) {
             while (element.firstChild) {
                 element.removeChild(element.firstChild);
-              }
+            }
         });
 
         //remove line through
         line.classList.remove(line.classList[1]) // 1 position is the added line though class
 
         winningCombos = createWinningCombosArray(); //reset state
+        // console.log('new state', winningCombos);
+        stallMateWatch = [];
     }
+
+
+    function toggleModal() {
+        
+        if(!modal.classList.contains('hidden')) {
+            // console.log('hide modal');
+            modalContent.classList.remove('rotate');
+            modal.classList.add('hidden');
+            
+        } else {
+            // console.log('reveal modal');
+            modalContent.classList.add('rotate');
+            modal.classList.remove('hidden');
+        }
+    }
+
+
+    function gameOver(input) {
+        // console.log('passed into gameOver:', input);
+        if(input === 'computer') {
+            winnerMsg.innerHTML = `The computer has won! :(`
+        } else if(input === 'josh') {
+            winnerMsg.innerHTML = 'Congrats! You have won'; 
+        } else {
+            winnerMsg.innerHTML = 'Stallmate, no winner :(';
+        }
+
+        toggleModal();
+    }
+
+
+
 
 
 
@@ -278,7 +334,6 @@ var Game = (function(){
 
     function init() {
 
-        // console.log('works');
         cacheDOM();
         events();
     }
@@ -286,7 +341,7 @@ var Game = (function(){
     function events() {
 
         board.addEventListener('click', userClick);
-        btn.addEventListener('click', resetGame);
+        btn.addEventListener('click', restartGame);
 
     }
 
@@ -299,6 +354,7 @@ var Game = (function(){
         modalContent = document.getElementsByClassName('modal-content')[0];
         winnerMsg = document.getElementsByClassName('winner-msg')[0];
         winningCombos =  createWinningCombosArray();
+        stallMateWatch = [];
     }
 
 
