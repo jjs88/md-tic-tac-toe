@@ -1,7 +1,7 @@
 (function(global) {
 
 
-    Game.init();
+    Game.init(); //load game
 
 
 })(window);

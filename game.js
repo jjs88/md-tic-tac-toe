@@ -1,10 +1,7 @@
 var Game = (function(){
 
-    //add modal for end game
-    //add functinality to restart game
 
-
-
+    //private variables for the game
     var board, winner, successSpot, boardSpot, element, choiceObj, choiceSlot, move, element,line, img, same, btn,
     modal, modalContent, winningCombos, winnerMsg, stallMateWatch;
 
@@ -55,6 +52,7 @@ var Game = (function(){
 
         // change game state
         if(boardSpot) {
+
             for(var x = 0; x < winningCombos.length; x++) {//cycle the array
 
                 for(y = 0; y < winningCombos[x].length-1; y++) { //cycle each object, skip last one
@@ -70,26 +68,27 @@ var Game = (function(){
             }
             
 
-            if(successSpot) { //if the user choice was a success, add the image to the board for that slot
+            if(successSpot) { // user turn was a success
 
-                addBoardIMG(boardSpot,'X');
-                addToStallMateWatch(boardSpot);
-                checkForStallMate();
+                addBoardIMG(boardSpot,'X'); //add image to board
+                addToStallMateWatch(boardSpot); //add spot to stallmate watch array
+                
 
-                if(!isWinner('josh')) { //check if user is the winner, else computers turn
+                if(isWinner('josh')) {
+
+                    gameOver('josh');
+
+                } else if(checkForStallMate()) {
+
+                    gameOver('stall');
+                    
+                } else {
 
                     computerMove();
-
-                } else { // user is the winner
-
-                    //END GAME HERE
-                    // console.log('josh wins');
-                    gameOver('josh');
-                    return;
                 }
-            } else { //wasn't a successful spot, player goes again
-                // console.log('try again');
+
             } 
+    
         }
     }
 
@@ -131,7 +130,7 @@ var Game = (function(){
   
         successSpot = false;
 
-        while(!successSpot) {
+        while(!successSpot) { //keep going until computer gets a valid board spot (one that isn't taken)
 
             choiceObj = Math.floor(Math.random() * 8) + 0 //random between 0-8 for array selection
             choiceSlot = Math.floor(Math.random() * 3) + 0 //random 0-2 for object selection
@@ -163,6 +162,8 @@ var Game = (function(){
 
 
         if(successSpot) {
+
+            // checkForStallMate();
             
             //get prop to tie to element class, only one in the object
             for(prop in boardSpot) {
@@ -170,17 +171,24 @@ var Game = (function(){
                 addToStallMateWatch(prop);
             }
 
-
+          
             if(isWinner('computer')) {
                 // console.log('computer wins!');
                 //END GAME HERE
                 // console.log(winningCombos);
                 gameOver('computer');
-                return;
+
+            } else if(checkForStallMate()) {
+
+                gameOver('stall');
+
+            } else {
+                //user turn again
             }
 
-            checkForStallMate();
+       
         }
+
     }
 
 
@@ -188,12 +196,9 @@ var Game = (function(){
 
         element = document.getElementsByClassName(boardSpot)[0];
 
-        //add conditonal for adding image here. if not already there, create
         img = document.createElement('img');
 
-        // console.log('img', element.children[0]);
-
-        if(!element.children[0]) {
+        if(!element.children[0]) { //only add the img once if it doesn't exist on the board
 
             img.setAttribute('src', `images/${piece}.png`);
             element.appendChild(img);
@@ -201,7 +206,7 @@ var Game = (function(){
     }
 
 
-    function addLineThrough(combo) {
+    function addLineThrough(combo) { // adds the line through class for the winning combo
 
         for(var x = 0; x < combo.length; x++) {
 
@@ -225,22 +230,28 @@ var Game = (function(){
 
         // console.log('stall', stallMateWatch);
         let cnt = 0;
-        if(stallMateWatch.length === 8) {
-            //do logic here to determine whether user should go on last try
-            //if any row has a count of 1 that means it can be a winner. so let the user go again to win
+        if(stallMateWatch.length === 8) { //one spot left, perform logic to see if user will win game or it will be a stallmate
+
             for(var x = 0; x < winningCombos.length; x++) { //cycle the inner arrays
                 
                 cnt = 0;
 
                 for(var y = 0; y < winningCombos[x].length-1; y++) { //cycle the objects, skip last
                     
-                    for(var prop in winningCombos[x][y]) { //cycle the props
+                    for(var prop in winningCombos[x][y]) { //cycle the object props
+
+                        // console.log(prop);
         
-                        if(winningCombos[x][y][prop] === 'x') {
+                        if(winningCombos[x][y][prop] === 'x') { 
+
                             cnt++;
+
                         } else if (winningCombos[x][y][prop] === 'o') {
+
                             cnt = cnt-1;
+
                         } else {
+
                             cnt;
                         }
                     }
@@ -250,16 +261,18 @@ var Game = (function(){
                 }
 
             
-                if (cnt === 2) {
+                if (cnt === 2) { //this means that there is 2 X's for the winning combo on the board. Let user take last turn to win game
 
                     // console.log('user goes');
                     break;
                 }
             }
 
-            if(cnt !== 2) {
+            
+            if(cnt !== 2) { // users last turn won't result in a win, end game as stallmate
                 // console.log('end game', 'stall game');
-                gameOver('stall');
+                return true;
+                // gameOver('stall');
             }
             
         }
@@ -283,26 +296,11 @@ var Game = (function(){
         });
 
         //remove line through
-        line.classList.remove(line.classList[1]) // 1 position is the added line though class
+        line.classList.remove(line.classList[1]) // 2nd position is the added line through class
 
         winningCombos = createWinningCombosArray(); //reset state
         // console.log('new state', winningCombos);
         stallMateWatch = [];
-    }
-
-
-    function toggleModal() {
-        
-        if(!modal.classList.contains('hidden')) {
-            // console.log('hide modal');
-            modalContent.classList.remove('rotate');
-            modal.classList.add('hidden');
-            
-        } else {
-            // console.log('reveal modal');
-            modalContent.classList.add('rotate');
-            modal.classList.remove('hidden');
-        }
     }
 
 
@@ -321,6 +319,22 @@ var Game = (function(){
 
 
 
+    function toggleModal() {
+        
+        if(!modal.classList.contains('hidden')) {
+            // console.log('hide modal');
+            modalContent.classList.remove('rotate');
+            modal.classList.add('hidden');
+            
+        } else {
+            // console.log('reveal modal');
+            modalContent.classList.add('rotate');
+            modal.classList.remove('hidden');
+        }
+    }
+
+
+ 
 
 
 
@@ -331,6 +345,8 @@ var Game = (function(){
 
 
 
+
+    // config functions for the Module
 
     function init() {
 
@@ -356,13 +372,6 @@ var Game = (function(){
         winningCombos =  createWinningCombosArray();
         stallMateWatch = [];
     }
-
-
-
-
-
-
-
 
 
 
